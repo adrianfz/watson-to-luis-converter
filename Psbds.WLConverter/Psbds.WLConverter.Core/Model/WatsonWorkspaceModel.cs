@@ -120,6 +120,9 @@ namespace Psbds.WLConverter.Core.Model
         [JsonProperty("synonyms")]
         public string[] Synonyms { get; set; }
 
+        [JsonProperty("patterns")]
+        public string[] Patterns { get; set; }
+
     }
 
     [Serializable]

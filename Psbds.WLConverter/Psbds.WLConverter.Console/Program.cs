@@ -31,6 +31,7 @@ namespace Psbds.WLConverter.Console
                     VersionId = "0.1",
                     LuisSchemaVersion = "2.2.0",
                     EntitiesClosedList = FillEntities(watsonModel),
+                    RegexEntities = FillRegexEntities(watsonModel),
                     Intents = FillIntents(watsonModel),
                     Utterances = FillUtterances(watsonModel)
                 };
@@ -88,12 +89,12 @@ namespace Psbds.WLConverter.Console
         public static LuisEntityClosedListsModel[] FillEntities(WatsonWorkspaceModel watsonModel)
         {
             var luisModelEntities = new List<LuisEntityClosedListsModel>();
-            foreach (var entity in watsonModel.Entities.Where(x => x.Values.Any()))
+            foreach (var entity in watsonModel.Entities.Where(x => x.Values.Any(v => v.Patterns == null || !v.Patterns.Any())))
             {
                 var luisEntity = new LuisEntityClosedListsModel()
                 {
                     Name = entity.Entity,
-                    SubLists = entity.Values.Select(x => new LuisEntityClosedListSubListModel()
+                    SubLists = entity.Values.Where(v => v.Patterns == null || !v.Patterns.Any()).Select(x => new LuisEntityClosedListSubListModel()
                     {
                         CanonicalForm = x.Value,
                         List = x.Synonyms.Select(s => s).ToArray()
@@ -103,6 +104,24 @@ namespace Psbds.WLConverter.Console
             }
 
             return luisModelEntities.ToArray();
+        }
+
+        public static LuisEntityRegexModel[] FillRegexEntities(WatsonWorkspaceModel watsonModel)
+        {
+            var luisModelRegexEntities = new List<LuisEntityRegexModel>();
+            foreach (var watsonEntity in watsonModel.Entities.Where(x => x.Values.Any(v => v.Patterns != null && v.Patterns.Any())))
+            {
+                foreach (var watsonRegexValue in watsonEntity.Values.Where(v => v.Patterns != null && v.Patterns.Any()))
+                {
+                    var luisEntity = new LuisEntityRegexModel()
+                    {
+                        Name = $"{watsonEntity.Entity}_{watsonRegexValue.Value}".SafeSubstring(0, 50),
+                        RegexPattern = String.Join('|', watsonRegexValue.Patterns.Select(x => $"(?:{x})"))
+                    };
+                    luisModelRegexEntities.Add(luisEntity);
+                }
+            }
+            return luisModelRegexEntities.ToArray();
         }
 
         public static WatsonWorkspaceModel ReadWatsonWorkspace()

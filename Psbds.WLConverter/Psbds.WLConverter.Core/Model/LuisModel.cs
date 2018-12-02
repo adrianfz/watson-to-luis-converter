@@ -42,6 +42,10 @@ namespace Psbds.WLConverter.Core.Model
         public LuisIntentModel[] Entities { get; set; } = { };
 
         [JsonRequired]
+        [JsonProperty("regex_entities")]
+        public LuisEntityRegexModel[] RegexEntities { get; set; } = { };
+
+        [JsonRequired]
         [JsonProperty("closedLists")]
         public LuisEntityClosedListsModel[] EntitiesClosedList { get; set; } = { };
 
@@ -82,6 +86,19 @@ namespace Psbds.WLConverter.Core.Model
         [JsonProperty("name")]
         public string Name { get; set; }
 
+    }
+
+    [Serializable]
+    public class LuisEntityRegexModel
+    {
+
+        [JsonRequired]
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonRequired]
+        [JsonProperty("regexPattern")]
+        public string RegexPattern { get; set; }
     }
 
     [Serializable]
